@@ -24,7 +24,7 @@ trait Actorable
 
     public function getAct(string $action, ?int $customOffset = null): ?array
     {
-        if (!$this->isRecentlyActed($action, $customOffset)) {
+        if (!$this->getActorType($action) || !$this->isRecentlyActed($action, $customOffset)) {
             return null;
         }
 
@@ -37,7 +37,7 @@ trait Actorable
 
     public function getActor(string $action, ?int $customOffset = null): ?Model
     {
-        if (!$this->isRecentlyActed($action, $customOffset)) {
+        if (!$this->getActorType($action) || !$this->isRecentlyActed($action, $customOffset)) {
             return null;
         }
 
@@ -46,7 +46,7 @@ trait Actorable
 
     public function getActorId(string $action, ?int $customOffset = null): int|string|null
     {
-        if (!$this->isRecentlyActed($action, $customOffset)) {
+        if (!$this->getActorType($action) || !$this->isRecentlyActed($action, $customOffset)) {
             return null;
         }
 
@@ -55,7 +55,7 @@ trait Actorable
 
     public function getActorType(string $action, ?int $customOffset = null): ?string
     {
-        if (!$this->isRecentlyActed($action, $customOffset)) {
+        if (!$this->getActorType($action) || !$this->isRecentlyActed($action, $customOffset)) {
             return null;
         }
 
@@ -64,7 +64,7 @@ trait Actorable
 
     public function getActedAt(string $action, ?int $customOffset = null): ?Carbon
     {
-        if (!$this->isRecentlyActed($action, $customOffset)) {
+        if (!$this->getActorType($action) || !$this->isRecentlyActed($action, $customOffset)) {
             return null;
         }
 
@@ -124,7 +124,7 @@ trait Actorable
             return false;
         }
 
-        if (!$this->isRecentlyActed($action, $customOffset)) {
+        if (!$this->getActorType($action) || !$this->isRecentlyActed($action, $customOffset)) {
             return false;
         }
 

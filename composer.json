@@ -1,0 +1,43 @@
+{
+  "name": "snappshop/actor",
+  "description": "Actor",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Pouya Zouravand",
+      "email": "pouya.zuravand@gmail.com"
+    }
+  ],
+  "type": "library",
+  "keywords": [
+    "Laravel",
+    "Action",
+    "Actor"
+  ],
+  "require": {
+    "php": ">=8.0",
+    "davechild/textstatistics": "^1.0"
+  },
+  "require-dev": {
+    "orchestra/canvas": "^7.4",
+    "orchestra/testbench": "^7.16"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "\\Actor\\Providers\\ActorServiceProvider"
+      ],
+      "aliases": {
+        "Actor": "Snappshop\\Actor\\Facades\\Actor"
+      }
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "Snappshop\\Actor\\": "src"
+    }
+  },
+  "autoload-dev": {
+  },
+  "minimum-stablity": "dev"
+}

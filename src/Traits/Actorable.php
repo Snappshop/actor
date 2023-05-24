@@ -55,7 +55,7 @@ trait Actorable
 
     public function getActorType(string $action, ?int $customOffset = null): ?string
     {
-        if (!$this->getActorType($action) || !$this->isRecentlyActed($action, $customOffset)) {
+        if (!$this->isRecentlyActed($action, $customOffset)) {
             return null;
         }
 

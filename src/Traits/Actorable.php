@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\ItemNotFoundException;
 use Snappshop\Actor\Helpers\NamingHelper;
 use Snappshop\Actor\Observers\ActorObserver;
 
@@ -59,7 +60,9 @@ trait Actorable
             return null;
         }
 
-        return $this->{NamingHelper::getActor($action).'_type'} ?? config('actor.default_actor_type');
+        $type = $this->getActorTypeKey($this->{NamingHelper::getActor($action).'_type'});
+
+        return $type ?? config('actor.default_actor_type');
     }
 
     public function getActedAt(string $action, ?int $customOffset = null): ?Carbon
@@ -76,7 +79,7 @@ trait Actorable
         $user = Auth::user();
         if (empty($this->{NamingHelper::getActor($action).'_id'}) || (
                 $this->{NamingHelper::getActor($action).'_id'} == $user->getAuthIdentifier()
-                && $this->{NamingHelper::getActor($action).'_type'} == get_class($user)
+                && $this->{NamingHelper::getActor($action).'_type'} == $this->getActorTypeValue(get_class($user))
             ) || $isForce) {
             $this->setActor($action, $user);
             $this->setActed($action);
@@ -90,7 +93,7 @@ trait Actorable
                 $this->{NamingHelper::getActor($action).'_id'} = $user->getAuthIdentifier();
             }
             if (Schema::hasColumn($this->getTable(), NamingHelper::getActor($action).'_type')) {
-                $this->{NamingHelper::getActor($action).'_type'} = get_class($user);
+                $this->{NamingHelper::getActor($action).'_type'} = $this->getActorTypeValue(get_class($user));
             }
             $this->saveQuietly();
         }
@@ -129,14 +132,14 @@ trait Actorable
         }
 
         return ($user->getAuthIdentifier() == $this->{NamingHelper::getActor($action).'_id'}
-            && get_class($user) == $this->{NamingHelper::getActor($action).'_type'});
+            && $this->getActorTypeValue(get_class($user)) == $this->{NamingHelper::getActor($action).'_type'});
     }
 
     public function scopeActedBy(Builder $query, string $action, Authenticatable $user, ?int $customOffset = null): void
     {
         $query->where(function ($query) use ($action, $user, $customOffset) {
             $query->where(NamingHelper::getActor($action).'_id', $user->getAuthIdentifier());
-            $query->where(NamingHelper::getActor($action).'_type', get_class($user));
+            $query->where(NamingHelper::getActor($action).'_type', $this->getActorTypeValue(get_class($user)));
             $query->when(!is_null($customOffset), function ($query) use ($action, $user, $customOffset) {
                 $query->where(NamingHelper::getActed($action).'_at', '>=', $this->getOffset($action, $customOffset));
             });
@@ -174,5 +177,45 @@ trait Actorable
         }
 
         return $offset;
+    }
+
+    private function getActorTypeValue(string $className): ?string
+    {
+        if (!config('actor.use_type_mapping', false)) {
+            return $className;
+        }
+
+        if (Arr::has(config('actor.type_mapping'), 0)) {
+            throw new ItemNotFoundException();
+        }
+
+        $type = array_filter(config('actor.type_mapping'),
+            function (?string $value, ?string $key) use ($className) {
+                if (!is_string($key) || !is_numeric($key)) {
+                    return false;
+                }
+
+                return $value == $className;
+            }, ARRAY_FILTER_USE_BOTH);
+
+        return Arr::first(array_keys($type));
+    }
+
+    private function getActorTypeKey(string $typeIndexString): ?string
+    {
+        if (!config('actor.use_type_mapping', false)) {
+            return $typeIndexString;
+        }
+
+        $type = array_filter(config('actor.type_mapping'),
+            function (?string $value, ?string $key) use ($typeIndexString) {
+                if (!is_string($key) || !is_numeric($key)) {
+                    return false;
+                }
+
+                return $key == $typeIndexString;
+            }, ARRAY_FILTER_USE_BOTH);
+
+        return Arr::first(array_values($type));
     }
 }

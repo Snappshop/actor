@@ -201,7 +201,7 @@ trait Actorable
         return Arr::first(array_keys($type));
     }
 
-    private function getActorTypeKey(string $typeIndexString): ?string
+    private function getActorTypeKey(?string $typeIndexString): ?string
     {
         if (!config('actor.use_type_mapping', false)) {
             return $typeIndexString;

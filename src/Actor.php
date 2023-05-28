@@ -23,10 +23,10 @@ class Actor
             'actor',
             function (
                 string $action = 'act',
-                $hasType = true,
-                $hasTimestamp = true,
-                $indexName = null,
-                $shouldIndex = false
+                       $hasType = true,
+                       $hasTimestamp = true,
+                       $indexName = null,
+                       $shouldIndex = false
             ) {
                 /** @var Blueprint $this */
                 $actor = NamingHelper::getActor($action);
@@ -36,7 +36,11 @@ class Actor
                     $field = $this->unsignedBigInteger("{$actor}_id")->nullable();
                     if ($hasType) {
                         if (!in_array("{$acted}_type", Arr::pluck($this->getColumns(), 'name'))) {
-                            $this->string("{$actor}_type")->nullable();
+                            if (config('actor.use_type_mapping', false)) {
+                                $this->string("{$actor}_type")->nullable();
+                            } else {
+                                $this->unsignedTinyInteger("{$actor}_type")->nullable();
+                            }
                         }
                     }
                     if ($hasTimestamp) {
